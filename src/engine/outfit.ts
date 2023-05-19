@@ -1,7 +1,7 @@
 import { OutfitSpec } from "grimoire-kolmafia";
-import { cliExecute, equip, equippedItem, Familiar, Item, toInt } from "kolmafia";
+import { cliExecute, equip, equippedItem, Familiar, Item, myPrimestat, toInt } from "kolmafia";
 import { $familiar, $familiars, $item, $skill, $slot, get, have, maxBy } from "libram";
-import { haveCBBIngredients } from "../lib";
+import { haveCBBIngredients, statToMaximizerString } from "../lib";
 
 export function garbageShirt(): void {
   if (
@@ -116,15 +116,22 @@ export function baseOutfit(allowAttackingFamiliars = true): OutfitSpec {
   // Only try equipping/nag LOV Epaulettes if we are done with the LOV tunnel
   const lovTunnelCompleted = get("_loveTunnelUsed") || !get("loveTunnelAvailable");
   return {
+    weapon: have($item`fish hatchet`)
+      ? $item`fish hatchet`
+      : have($item`bass clarinet`)
+      ? $item`bass clarinet`
+      : undefined,
     offhand: $item`unbreakable umbrella`,
     back: lovTunnelCompleted ? $item`LOV Epaulettes` : undefined,
-    acc1: $item`codpiece`,
-    acc2:
+    acc1:
       have($item`Cincho de Mayo`) && get("_cinchUsed", 0) < 95 && !get("instant_saveCinch", false)
         ? $item`Cincho de Mayo`
         : undefined,
+    acc2: have($item`codpiece`) ? $item`codpiece` : undefined,
     familiar: chooseFamiliar(allowAttackingFamiliars),
-    modifier: "0.25 mys, 0.33 ML, -equip tinsel tights, -equip wad of used tape",
+    modifier: `0.25 ${statToMaximizerString(
+      myPrimestat()
+    )}, 0.33 ML, -equip tinsel tights, -equip wad of used tape`,
     avoid: sugarItemsAboutToBreak(),
   };
 }

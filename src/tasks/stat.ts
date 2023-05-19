@@ -1,9 +1,10 @@
-import { create, Effect, print } from "kolmafia";
+import { create, Effect, myPrimestat, print, Stat } from "kolmafia";
 import {
   $effect,
   $effects,
   $item,
   $items,
+  $stat,
   CommunityService,
   ensureEffect,
   get,
@@ -11,7 +12,22 @@ import {
   uneffect,
 } from "libram";
 import { Quest } from "../engine/task";
-import { logTestSetup, tryAcquiringEffect } from "../lib";
+import {
+  logTestSetup,
+  reagentBalancerEffect,
+  reagentBalancerItem,
+  tryAcquiringEffect,
+} from "../lib";
+
+function useBalancerForTest(testStat: Stat): void {
+  if (testStat === myPrimestat) {
+    return;
+  }
+  if (!have(reagentBalancerEffect) && !have(reagentBalancerItem)) {
+    create(reagentBalancerItem, 1);
+  }
+  ensureEffect(reagentBalancerEffect);
+}
 
 export const HPQuest: Quest = {
   name: "HP",
@@ -67,10 +83,7 @@ export const MuscleQuest: Quest = {
       name: "Test",
       completed: () => CommunityService.Muscle.isDone(),
       prepare: (): void => {
-        if (!have($effect`Expert Oiliness`) && !have($item`oil of expertise`)) {
-          create($item`oil of expertise`, 1);
-        }
-        ensureEffect($effect`Expert Oiliness`);
+        useBalancerForTest($stat`Muscle`);
         if (
           !have($effect`Phorcefullness`) &&
           !have($item`philter of phorce`) &&
@@ -122,6 +135,7 @@ export const MysticalityQuest: Quest = {
       name: "Test",
       completed: () => CommunityService.Mysticality.isDone(),
       prepare: (): void => {
+        useBalancerForTest($stat`Mysticality`);
         const usefulEffects: Effect[] = [
           $effect`Big`,
           $effect`Glittering Eyelashes`,
@@ -169,10 +183,7 @@ export const MoxieQuest: Quest = {
       name: "Test",
       completed: () => CommunityService.Moxie.isDone(),
       prepare: (): void => {
-        if (!have($effect`Expert Oiliness`) && !have($item`oil of expertise`)) {
-          create($item`oil of expertise`, 1);
-        }
-        ensureEffect($effect`Expert Oiliness`);
+        useBalancerForTest($stat`Moxie`);
         const usefulEffects: Effect[] = [
           // $effect`Amazing`,
           $effect`Big`,

@@ -20,6 +20,8 @@ import {
   myMaxmp,
   myMeat,
   myMp,
+  myPrimestat,
+  mySign,
   mySoulsauce,
   print,
   restoreHp,
@@ -46,6 +48,7 @@ import {
   $monsters,
   $skill,
   $slot,
+  $stat,
   clamp,
   CommunityService,
   get,
@@ -57,11 +60,10 @@ import {
 } from "libram";
 import { canConfigure, setConfiguration, Station } from "libram/dist/resources/2022/TrainSet";
 import { Quest } from "../engine/task";
-import { getGarden, tryAcquiringEffect } from "../lib";
+import { getGarden, statToMaximizerString, tryAcquiringEffect } from "../lib";
 import Macro from "../combat";
 import { mapMonster } from "libram/dist/resources/2020/Cartography";
-import { baseOutfit, chooseFamiliar, unbreakableUmbrella } from "../engine/outfit";
-import { OutfitSpec } from "grimoire-kolmafia";
+import { baseOutfit, unbreakableUmbrella } from "../engine/outfit";
 
 export const RunStartQuest: Quest = {
   name: "Run Start",
@@ -120,13 +122,21 @@ export const RunStartQuest: Quest = {
       limit: { tries: 1 },
     },
     {
-      name: "Get Codpiece",
+      name: "Get Floundry item",
       completed: () => get("_floundryItemCreated") || get("instant_saveFloundry", false),
       do: (): void => {
-        retrieveItem($item`codpiece`, 1);
-        use($item`codpiece`, 1);
-        create($item`oil cap`, 1);
-        autosell($item`oil cap`, 1);
+        if (myPrimestat() === $stat`Muscle`) {
+          retrieveItem($item`fish hatchet`);
+        } else if (myPrimestat() === $stat`Mysticality`) {
+          retrieveItem($item`codpiece`, 1);
+          use($item`codpiece`, 1);
+          create($item`oil cap`, 1);
+          autosell($item`oil cap`, 1);
+        } else if (myPrimestat() === $stat`Moxie`) {
+          retrieveItem($item`bass clarinet`);
+          use($item`bass clarinet`, 1);
+          autosell($item`white pixel`, 10);
+        }
       },
       limit: { tries: 1 },
     },
@@ -267,7 +277,7 @@ export const RunStartQuest: Quest = {
         get("instant_savePantogram", false),
       do: (): void => {
         Pantogram.makePants(
-          "Mysticality",
+          myPrimestat().toString(),
           "Hot Resistance: 2",
           "Maximum HP: 40",
           "Combat Rate: -5",
@@ -279,10 +289,13 @@ export const RunStartQuest: Quest = {
     {
       name: "Mummery",
       completed: () =>
-        get("_mummeryMods").includes(`Experience (Mysticality)`) ||
+        get("_mummeryMods").includes(`Experience (${myPrimestat().toString()})`) ||
         !have($item`mumming trunk`) ||
         get("instant_saveMummingTrunk", false),
-      do: () => cliExecute("mummery myst"),
+      do: (): void => {
+        const statString = statToMaximizerString(myPrimestat());
+        cliExecute(`mummery ${statString}`);
+      },
       outfit: { familiar: $familiar`Cookbookbat` },
       limit: { tries: 1 },
     },
@@ -396,13 +409,18 @@ export const RunStartQuest: Quest = {
         !have($item`model train set`) ||
         (getWorkshed() === $item`model train set` && !canConfigure()),
       do: (): void => {
+        const statStation: Station = {
+          Muscle: Station.BRAWN_SILO,
+          Mysticality: Station.BRAIN_SILO,
+          Moxie: Station.GROIN_SILO,
+        }[myPrimestat().toString()];
         use($item`model train set`);
         setConfiguration([
           Station.GAIN_MEAT, // meat (we don't gain meat during free banishes)
           Station.TOWER_FIZZY, // mp regen
           Station.TOWER_FROZEN, // hot resist (useful)
-          Station.COAL_HOPPER, // double myst gain
-          Station.BRAIN_SILO, // myst stats
+          Station.COAL_HOPPER, // double mainstat gain
+          statStation, // main stats
           Station.VIEWING_PLATFORM, // all stats
           Station.WATER_BRIDGE, // +ML
           Station.CANDY_FACTORY, // candies (we don't get items during free banishes)
@@ -423,15 +441,10 @@ export const RunStartQuest: Quest = {
         get("instant_skipEarlyTrainsetMeat", false),
       do: $location`The Dire Warren`,
       combat: new CombatStrategy().macro(Macro.attack()),
-      outfit: (): OutfitSpec => {
-        return {
-          offhand: $item`unbreakable umbrella`,
-          acc1: $item`codpiece`,
-          familiar: chooseFamiliar(false),
-          modifier:
-            "0.25 mys, -1 ML, -equip tinsel tights, -equip wad of used tape, -equip miniature crystal ball, -equip backup camera",
-        };
-      },
+      outfit: () => ({
+        ...baseOutfit(false),
+        modifier: `${baseOutfit().modifier}, -equip miniature crystal ball, -equip backup camera`,
+      }),
       limit: { tries: 1 },
     },
     {
@@ -444,7 +457,8 @@ export const RunStartQuest: Quest = {
     },
     {
       name: "Use Mind Control Device",
-      completed: () => currentMcd() >= 10,
+      completed: () =>
+        currentMcd() >= 10 || !["platypus", "opossum", "marmot"].includes(mySign().toLowerCase()),
       do: () => changeMcd(11),
       limit: { tries: 1 },
     },
@@ -475,15 +489,10 @@ export const RunStartQuest: Quest = {
       combat: new CombatStrategy().macro(
         Macro.if_($monster`novelty tropical skeleton`, Macro.tryItem($item`yellow rocket`)).abort()
       ),
-      outfit: (): OutfitSpec => {
-        return {
-          offhand: $item`unbreakable umbrella`,
-          acc1: $item`codpiece`,
-          familiar: chooseFamiliar(false),
-          modifier:
-            "0.25 mys, 0.33 ML, -equip tinsel tights, -equip wad of used tape, -equip miniature crystal ball",
-        };
-      },
+      outfit: () => ({
+        ...baseOutfit(false),
+        modifier: `${baseOutfit().modifier}, -equip miniature crystal ball`,
+      }),
       post: (): void => {
         if (have($item`MayDay™ supply package`) && !get("instant_saveMayday", false))
           use($item`MayDay™ supply package`, 1);
@@ -504,8 +513,8 @@ export const RunStartQuest: Quest = {
       },
       completed: () =>
         have($item`cherry`) &&
-        $monsters`remaindered skeleton, swarm of skulls, factory-irregular skeleton, novelty tropical skeleton`.filter((m) =>
-          Array.from(getBanishedMonsters().values()).includes(m)
+        $monsters`remaindered skeleton, swarm of skulls, factory-irregular skeleton, novelty tropical skeleton`.filter(
+          (m) => Array.from(getBanishedMonsters().values()).includes(m)
         ).length >= (have($skill`Map the Monsters`) ? 2 : 3),
       do: $location`The Skeleton Store`,
       combat: new CombatStrategy().macro(
@@ -515,16 +524,11 @@ export const RunStartQuest: Quest = {
           .trySkill($skill`Monkey Slap`)
           .abort()
       ),
-      outfit: (): OutfitSpec => {
-        return {
-          offhand: $item`unbreakable umbrella`,
-          acc1: $item`codpiece`,
-          acc2: $item`cursed monkey's paw`,
-          familiar: chooseFamiliar(false),
-          modifier:
-            "0.25 mys, 0.33 ML, -equip tinsel tights, -equip wad of used tape, -equip miniature crystal ball",
-        };
-      },
+      outfit: () => ({
+        ...baseOutfit(false),
+        acc3: $item`cursed monkey's paw`,
+        modifier: `${baseOutfit().modifier}, -equip miniature crystal ball`,
+      }),
       post: (): void => {
         if (have($item`MayDay™ supply package`) && !get("instant_saveMayday", false))
           use($item`MayDay™ supply package`, 1);
