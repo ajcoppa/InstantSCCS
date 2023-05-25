@@ -20,7 +20,7 @@ import {
 } from "../lib";
 
 function useBalancerForTest(testStat: Stat): void {
-  if (testStat === myPrimestat) {
+  if (testStat === myPrimestat()) {
     return;
   }
   if (!have(reagentBalancerEffect) && !have(reagentBalancerItem)) {
@@ -136,6 +136,13 @@ export const MysticalityQuest: Quest = {
       completed: () => CommunityService.Mysticality.isDone(),
       prepare: (): void => {
         useBalancerForTest($stat`Mysticality`);
+        if (
+          !have($effect`Mystically Oiled`) &&
+          !have($item`ointment of the occult`) &&
+          $items`scrumptious reagent, grapefruit`.every((it) => have(it))
+        ) {
+          create($item`ointment of the occult`, 1);
+        }
         const usefulEffects: Effect[] = [
           $effect`Big`,
           $effect`Glittering Eyelashes`,
@@ -147,6 +154,7 @@ export const MysticalityQuest: Quest = {
           $effect`Saucemastery`,
           $effect`Song of Bravado`,
           $effect`Stevedave's Shanty of Superiority`,
+          $effect`Mystically Oiled`,
         ];
         usefulEffects.forEach((ef) => tryAcquiringEffect(ef, true));
       },
