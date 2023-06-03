@@ -169,6 +169,9 @@ const usefulEffects: Effect[] = [
   $effect`Stevedave's Shanty of Superiority`,
   $effect`Ur-Kel's Aria of Annoyance`,
   $effect`Aloysius' Antiphon of Aptitude`,
+
+  // Familiar weight
+  $effect`Curiosity of Br'er Tarrypin`,
   ...statEffects[mainStatStr],
 ];
 

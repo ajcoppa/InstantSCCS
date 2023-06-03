@@ -205,6 +205,7 @@ export const BoozeDropQuest: Quest = {
           $effect`Nearly All-Natural`,
           $effect`The Spirit of Taking`,
           $effect`Singer's Faithful Ocelot`,
+          $effect`Spice Haze`,
           $effect`Steely-Eyed Squint`,
           $effect`Uncucumbered`,
         ];
