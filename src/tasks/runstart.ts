@@ -154,6 +154,16 @@ export const RunStartQuest: Quest = {
       limit: { tries: 1 },
     },
     {
+      name: "Update Replica Store Credits",
+      completed: () =>
+        // eslint-disable-next-line libram/verify-constants
+        !have($item`2002 Mr. Store Catalog`) || get("availableMrStore2002Credits", 0) > 0,
+      do: () =>
+        // eslint-disable-next-line libram/verify-constants
+        visitUrl(`inv_use.php?whichitem=${toInt($item`2002 Mr. Store Catalog`)}&which=f0&pwd`),
+      limit: { tries: 1 },
+    },
+    {
       name: "KGB",
       completed: () =>
         get("_kgbClicksUsed") > 0 ||
@@ -179,7 +189,7 @@ export const RunStartQuest: Quest = {
           visitUrl("campground.php?action=rest");
         }
       },
-      outfit: { modifier: "myst, mp" },
+      outfit: { modifier: "myst, mp, -tie" },
     },
     {
       name: "Borrowed Time",

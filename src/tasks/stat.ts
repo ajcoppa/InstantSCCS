@@ -1,4 +1,4 @@
-import { create, Effect, myPrimestat, print, Stat } from "kolmafia";
+import { create, Effect, myPrimestat, print, Stat, toInt, use, visitUrl } from "kolmafia";
 import {
   $effect,
   $effects,
@@ -10,6 +10,7 @@ import {
   get,
   have,
   uneffect,
+  withChoice,
 } from "libram";
 import { Quest } from "../engine/task";
 import {
@@ -192,6 +193,28 @@ export const MysticalityQuest: Quest = {
 export const MoxieQuest: Quest = {
   name: "Moxie",
   tasks: [
+    {
+      // This is also useful for the BoozeDrop test, but we can grab the +10%mox here first
+      name: "High Heels",
+      completed: () =>
+        // eslint-disable-next-line libram/verify-constants
+        have($item`red-soled high heels`) ||
+        // eslint-disable-next-line libram/verify-constants
+        !have($item`2002 Mr. Store Catalog`) ||
+        get("availableMrStore2002Credits", 0) <= get("instant_saveCatalogCredits", 0) ||
+        get("instant_skipHighHeels", false),
+      do: (): void => {
+        // eslint-disable-next-line libram/verify-constants
+        if (!have($item`Letter from Carrie Bradshaw`)) {
+          // eslint-disable-next-line libram/verify-constants
+          visitUrl(`inv_use.php?whichitem=${toInt($item`2002 Mr. Store Catalog`)}&which=f0&pwd`);
+          visitUrl("shop.php?whichshop=mrstore2002&action=buyitem&quantity=1&whichrow=1380&pwd");
+        }
+        // eslint-disable-next-line libram/verify-constants
+        withChoice(1506, 3, () => use($item`Letter from Carrie Bradshaw`));
+      },
+      limit: { tries: 1 },
+    },
     {
       name: "Test",
       completed: () => CommunityService.Moxie.isDone(),
