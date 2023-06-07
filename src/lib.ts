@@ -11,9 +11,11 @@ import {
   myBuffedstat,
   myMaxhp,
   myMp,
+  myPrimestat,
   print,
   restoreMp,
   retrieveItem,
+  Stat,
   toItem,
   toSkill,
   toStat,
@@ -209,6 +211,7 @@ export function haveCBBIngredients(fullCheck: boolean): boolean {
     yeast += 2;
     whey += 2;
   }
+  if (!get("instant_saveBorisBread", false) && !have($effect`Inspired Chef`)) yeast += 2;
   if (fullCheck) {
     if (!get("instant_saveRicottaCasserole", false) && !have($effect`Pretty Delicious`)) {
       vegetable += 2;
@@ -231,3 +234,75 @@ export function haveCBBIngredients(fullCheck: boolean): boolean {
     itemAmount($item`St. Sneaky Pete's Whey`) >= whey
   );
 }
+
+export function statToMaximizerString(stat: Stat): string {
+  return stat === $stat`Muscle` ? "mus" : stat === $stat`Mysticality` ? "myst" : "mox";
+}
+
+const mainStatStr = myPrimestat().toString();
+
+export const reagentBalancerEffect: Effect = {
+  Muscle: $effect`Stabilizing Oiliness`,
+  Mysticality: $effect`Expert Oiliness`,
+  Moxie: $effect`Slippery Oiliness`,
+}[mainStatStr];
+
+export const reagentBalancerItem: Item = {
+  Muscle: $item`oil of stability`,
+  Mysticality: $item`oil of expertise`,
+  Moxie: $item`oil of slipperiness`,
+}[mainStatStr];
+
+export const reagentBalancerIngredient: Item = {
+  Muscle: $item`lime`,
+  Mysticality: $item`cherry`,
+  Moxie: $item`jumbo olive`,
+}[mainStatStr];
+
+export const reagentBoosterEffect: Effect = {
+  Muscle: $effect`Phorcefullness`,
+  Mysticality: $effect`Mystically Oiled`,
+  Moxie: $effect`Superhuman Sarcasm`,
+}[mainStatStr];
+
+export const reagentBoosterItem: Item = {
+  Muscle: $item`philter of phorce`,
+  Mysticality: $item`ointment of the occult`,
+  Moxie: $item`serum of sarcasm`,
+}[mainStatStr];
+
+export const reagentBoosterIngredient: Item = {
+  Muscle: $item`lemon`,
+  Mysticality: $item`grapefruit`,
+  Moxie: $item`olive`,
+}[mainStatStr];
+
+export const xpWishEffect: Effect = {
+  Muscle: $effect`HGH-charged`,
+  Mysticality: $effect`Different Way of Seeing Things`,
+  Moxie: $effect`Thou Shant Not Sing`,
+}[mainStatStr];
+
+export const snapperXpItem: Item = {
+  Muscle: $item`vial of humanoid growth hormone`,
+  Mysticality: $item`non-Euclidean angle`,
+  Moxie: $item`Shantix™`,
+}[mainStatStr];
+
+export const abstractionXpItem: Item = {
+  Muscle: $item`abstraction: purpose`,
+  Mysticality: $item`abstraction: category`,
+  Moxie: $item`abstraction: perception`,
+}[mainStatStr];
+
+export const abstractionXpEffect: Effect = {
+  Muscle: $effect`Purpose`,
+  Mysticality: $effect`Category`,
+  Moxie: $effect`Perception`,
+}[mainStatStr];
+
+export const generalStoreXpEffect: Effect = {
+  Muscle: $effect`Go Get 'Em, Tiger!`,
+  Mysticality: $effect`Glittering Eyelashes`,
+  Moxie: $effect`Butt-Rock Hair`,
+}[mainStatStr];
